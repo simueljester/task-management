@@ -198,14 +198,13 @@ function applyNewItemsOrder(e) {
     return res.json()
   })
   .then((data) => {
-    console.log('reorder saved', data)
+    showSuccessToast('Reorder successfully saved')
   })
   .catch((err) => {
     console.error('reorder failed', err)
   })
 
   const finalIndex = nodes.indexOf(draggableItem)
-  console.log('draggable final index', finalIndex)
 
   draggableItem.style.transform = ''
 
@@ -255,6 +254,34 @@ function enablePageScroll() {
   document.body.style.overflow = ''
   document.body.style.touchAction = ''
   document.body.style.userSelect = ''
+}
+
+function showSuccessToast(message = 'Reorder successfully saved') {
+  const container = document.getElementById('toast-container')
+  const toast = document.createElement('div')
+  toast.innerHTML = `
+    <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md flex items-start gap-3">
+      <svg class="h-6 w-6 text-teal-500 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
+      </svg>
+
+      <div>
+        <p class="font-bold">Success</p>
+        <p class="text-sm">${message}</p>
+      </div>
+    </div>
+  `
+  toast.className = 'transition transform duration-300 ease-out opacity-0 translate-x-4'
+  container.appendChild(toast)
+
+  requestAnimationFrame(() => {
+    toast.classList.remove('opacity-0', 'translate-x-4')
+  })
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-x-4')
+    setTimeout(() => toast.remove(), 300)
+  }, 3000)
 }
 
 setup()
