@@ -32,7 +32,7 @@
                                 </select>
                             </form>
                         @else
-                            <h2 class="text-base text-gray-100 font-semibold mb-4 float-right">
+                            <h2 class="text-base text-gray-900  dark:text-gray-100 mb-4 float-right">
                                 No projects found. Please create a project to manage your tasks.
                             </h2>
                         @endif
