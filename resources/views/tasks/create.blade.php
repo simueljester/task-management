@@ -11,13 +11,19 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <form action="{{ route('tasks.store') }}" method="POST">
                         @csrf
-                        <div>
-                            <x-input-label for="title" value="Task Title" />
-                            <x-text-input id="title" type="text" name="title" :value="old('title')" required />
-                            <x-input-error :messages="$errors->get('title')" />
+                        <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                            <div>
+                                <x-input-label for="title" value="Task Title" />
+                                <x-text-input id="title" type="text" name="title" :value="old('title')" required />
+                                <x-input-error :messages="$errors->get('title')" />
+                            </div>
+                            <div>
+                                <x-input-label for="project" value="Project" />
+                                <x-text-input id="project" type="text" name="project" :value="$activeProject->name ?? 'no project linked'" disabled />
+                            </div>
                         </div>
                         <div class="mt-4">
-                            <x-input-label for="description" value="Task Description" />
+                            <x-input-label for="description" value="Description" />
                             <textarea id="description" name="description" rows="4" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm w-full">{{ old('description') }}</textarea>
                             <x-input-error :messages="$errors->get('description')" />
                         </div>

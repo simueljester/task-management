@@ -10,6 +10,7 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
+        'project_id',
         'priority',
         'user_id',
         'title',
@@ -28,7 +29,13 @@ class Task extends Model
             if (! is_null($task->priority)) {
                 return;
             }
-            $max = static::where('user_id', $task->user_id)->max('priority');
+
+            if (is_null($task->project_id)) {
+                return;
+            }
+
+            $max = static::where('project_id', $task->project_id)->max('priority');
+            
             $task->priority = ($max ?? 0) + 1;
         });
     }

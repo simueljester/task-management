@@ -7,24 +7,35 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Repositories\TaskRepository;
-use App\Http\Requests\Tasks\ReorderTaskRequest;
+use App\Http\Repositories\ProjectRepository;
 use App\Http\Requests\Tasks\SaveTaskRequest;
 use App\Http\Requests\Tasks\UpdateTaskRequest;
+use App\Http\Requests\Tasks\ReorderTaskRequest;
 
 class TaskController extends Controller
 {
-    private $taskRepository;
+    private $taskRepository, $projectRepository;
 
     public function __construct()
     {
         //dependency injection
         $this->taskRepository = app(TaskRepository::class);
+
+        $this->projectRepository = app(ProjectRepository::class);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = $this->taskRepository->getAllTasksForUser(auth()->id());
-        return view('tasks.index', compact('tasks'));
+       
+        $projects = $this->projectRepository->getAllProjectsForUser(auth()->id());
+
+        $activeProjectId = $request->input('project_id') ?? session('active_project_id') ?? $projects->first()?->id ?? null;
+   
+        session(['active_project_id' => $activeProjectId]);
+
+        $tasks = $this->taskRepository->getAllTasksForUser(auth()->id(), $activeProjectId);
+
+        return view('tasks.index', compact('tasks', 'activeProjectId', 'projects'));
     }
 
     /**
@@ -32,7 +43,17 @@ class TaskController extends Controller
      */
     public function create()
     {
-        return view('tasks.create');
+        $activeProjectId = session('active_project_id');
+
+        if ($activeProjectId === null) {
+
+            return redirect()->route('tasks.index')->with('error', 'Please select a project before creating a task.');
+
+        }
+        
+        $activeProject = $this->projectRepository->find($activeProjectId);
+    
+        return view('tasks.create', compact('activeProject'));
     }
 
     /**
@@ -44,6 +65,7 @@ class TaskController extends Controller
 
         $data = [
             'user_id'       => auth()->id(),
+            'project_id'    => session('active_project_id') ?? null,
             'priority'      => null,
             'title'         => $validatedData['title'],
             'description'   => $validatedData['description'],
@@ -87,6 +109,7 @@ class TaskController extends Controller
         $validatedData = $request->validated();
 
         $data = [
+            'project_id'    => session('active_project_id') ?? null,
             'title'         => $validatedData['title'],
             'description'   => $validatedData['description'],
             'due_date'      => $validatedData['due_date'],
@@ -108,9 +131,13 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         try {
+
             $this->taskRepository->delete($task->id);
+
         } catch (\Exception $e) {
+
             return response()->json(['error' => 'Something went wrong', 'message' => $e->getMessage()], 500);
+
         }
 
         return redirect()->route('tasks.index')->with('success', 'Task deleted successfully.');

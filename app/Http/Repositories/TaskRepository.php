@@ -11,8 +11,14 @@ class TaskRepository extends BaseRepository
         $this->model = $model;
     }
 
-    public function getAllTasksForUser(int $userId) : \Illuminate\Database\Eloquent\Collection
+    public function getAllTasksForUser(int $userId, ?int $projectId = null) : \Illuminate\Database\Eloquent\Collection
     {
-        return $this->query()->where('user_id', $userId)->orderBy('priority')->get();
+        $query = $this->query()->where('user_id', $userId);
+
+        if ($projectId !== null) {
+            $query->where('project_id', $projectId);
+        }
+
+        return $query->orderBy('priority')->get();
     }
 }

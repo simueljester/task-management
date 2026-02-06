@@ -21,6 +21,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = $this->projectRepository->getAllProjectsForUser(auth()->id());
+        
         return view('projects.index', compact('projects'));
     }
 
@@ -71,15 +72,30 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
-        //
+        return view('projects.edit', compact('project'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(SaveProjectRequest $request, Project $project)
     {
-        //
+        $validated = $request->validated();
+
+        $data = [
+            'name' => $validated['name'],
+        ];
+
+        try {
+
+            $this->projectRepository->update($project->id, $data);
+
+        } catch (\Exception $e) {
+
+            return response()->json(['error' => 'Something went wrong', 'message' => $e->getMessage()], 500);
+        }
+
+        return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
     }
 
     /**
@@ -88,9 +104,22 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
        try {
+            //forget whats in the session if the project being deleted is the active one
+            $activeProjectId = session('active_project_id');
+
+            if ($activeProjectId == $project->id) {
+
+                session()->forget('active_project_id');
+
+            }
+
             $this->projectRepository->delete($project->id);
+
+
         } catch (\Exception $e) {
+            
             return response()->json(['error' => 'Something went wrong', 'message' => $e->getMessage()], 500);
+            
         }
 
         return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
